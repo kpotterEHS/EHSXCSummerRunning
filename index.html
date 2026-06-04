@@ -278,6 +278,15 @@
             <div class="mb-8">
                 <h2 class="text-2xl font-bold text-stone-800">Speed & Plyometrics Hub ⚡</h2>
                 <p class="text-stone-600 mt-2">Running economy relies heavily on elastic storage in your tendons. Integrate these quick, high-impact routines into your designated Speed days. Click on any card below to reveal instruction details and access video demonstration searches.</p>
+                
+                <!-- Disclaimer box -->
+                <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-stone-700 flex items-start gap-3">
+                    <span class="text-lg">⚠️</span>
+                    <div>
+                        <strong class="text-amber-900 font-bold block mb-1">Disclaimer on Video Demonstrations:</strong>
+                        Please be careful when clicking on the YouTube examples of plyometrics, as the techniques shown online are not always as high quality or correct as advertised. If you have any questions or are unsure how to correctly perform a certain exercise, please reach out to <strong>Coach Potter</strong> for guidance.
+                    </div>
+                </div>
             </div>
 
             <div class="flex gap-2 mb-6 border-b border-stone-200 pb-2 overflow-x-auto">
@@ -313,26 +322,26 @@
                 beginner: [
                     { day: "Monday", type: "Easy Base", desc: "Run for 20-30 minutes in Zone 2. Run at a completely conversational, relaxed pace.", icon: "👟" },
                     { day: "Wednesday", type: "Easy Base", desc: "Run for 20-30 minutes in Zone 2. Focus on light footsteps, good posture, and breathing.", icon: "👟" },
-                    { day: "Friday", type: "Speed & Plyo", desc: "10-minute jogging warm-up. Pick 3 options from the Beginner Plyometrics directory. Perform 4-5 sets of 80-meter light strides. Cooldown with a 5-minute jog.", icon: "⚡" }
+                    { day: "Friday", type: "Speed & Plyo", desc: "10-minute jogging warm-up. Pick 5 options from the Beginner Plyometrics directory. Perform 4-5 sets of 80-meter light strides. Cooldown with a 5-minute jog.", icon: "⚡" }
                 ],
                 intermediate: {
                     june: [
                         { day: "Monday", type: "Easy Base", desc: "Run 25-35 minutes in Zone 2. Rest or stretch lightly afterward.", icon: "👟" },
                         { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
-                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Select 3 options from the Intermediate Plyometrics directory. Walk/jog back slowly between efforts.", icon: "⚡" }
+                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Select 7 options from the Intermediate Plyometrics directory. Walk/jog back slowly between efforts.", icon: "⚡" }
                     ],
                     july: [
                         { day: "Monday", type: "Easy Base", desc: "Run 30-40 minutes in Zone 2. Keep the effort conversational.", icon: "👟" },
                         { day: "Tuesday", type: "Recovery Run", desc: "Run 20-25 minutes very easy. This is active recovery to flush your legs.", icon: "🧘" },
                         { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
-                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Perform intermediate plyometrics. Follow with 5x100m strides.", icon: "⚡" }
+                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Perform 7 options from the Intermediate Plyo directory. Follow with 5x100m strides.", icon: "⚡" }
                     ],
                     august: [
                         { day: "Monday", type: "Easy Base", desc: "Run 35-45 minutes in Zone 2. Focus on smooth leg cycles.", icon: "👟" },
                         { day: "Tuesday", type: "Recovery Run", desc: "Run 25-30 minutes very easy. Keep breathing completely relaxed.", icon: "🧘" },
                         { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
                         { day: "Thursday", type: "Steady Run", desc: "Steady 30-35 minutes Zone 2 run on hilly or soft trails.", icon: "🏃" },
-                        { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up jog. Select 3 intermediate plyos. Run 6x100m strides with walk-back recovery.", icon: "⚡" }
+                        { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up jog. Select 7 intermediate plyos. Run 6x100m strides with walk-back recovery.", icon: "⚡" }
                     ]
                 },
                 advanced: [
@@ -340,7 +349,7 @@
                     { day: "Tuesday", type: "Recovery Run", desc: "35-45 minutes very easy Zone 2. Excellent for leg tissue repair.", icon: "🧘" },
                     { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
                     { day: "Thursday", type: "Easy Base", desc: "45-55 minutes continuous Zone 2 on soft grass or clay paths.", icon: "👟" },
-                    { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up. Pick 3 Advanced Plyo exercises. Perform 6-8x100m strides focusing on maximum relaxation at high speed.", icon: "⚡" }
+                    { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up. Pick 7 Advanced Plyo exercises. Perform 6-8x100m strides focusing on maximum relaxation at high speed.", icon: "⚡" }
                 ]
             },
             volumeData: {
@@ -351,7 +360,7 @@
                 ],
                 beginner: [10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 12],
                 intermediate: [10, 11, 12, 13, 15, 16, 18, 20, 22, 23, 25, 20],
-                advanced: [18, 20, 22, 25, 28, 30, 32, 35, 38, 42, 45, 35]
+                advanced: [15, 17, 20, 23, 26, 30, 32, 35, 38, 42, 45, 35]
             },
             coachingTips: [
                 "Week 1: Welcome to summer training! Focus on getting your runs done in the morning before the heat sets in.",
@@ -558,6 +567,19 @@
                 // If Wednesday Threshold, dynamically inject specific reps & rests
                 if (item.type === "Threshold") {
                     dynamicDescription = `Perform <strong>${matchingThresholdObj.rep}</strong> with <strong>${matchingThresholdObj.rest}</strong>. Maintain steady, conversational-yet-steady pacing throughout all reps. Take 5 min warmup and 5 min cooldown jogs.`;
+                }
+
+                // If Monday Long Base and Advanced Group, dynamically adjust duration for first 5 weeks
+                if (currentGroup === 'advanced' && item.day === "Monday" && item.type === "Long Base") {
+                    if (currentWeek === 1 || currentWeek === 2) {
+                        dynamicDescription = "Run for 45 minutes in Zone 2. Your weekly endurance building block.";
+                    } else if (currentWeek === 3) {
+                        dynamicDescription = "Run for 45-55 minutes in Zone 2. Your weekly endurance building block.";
+                    } else if (currentWeek === 4) {
+                        dynamicDescription = "Run for 50-60 minutes in Zone 2. Your weekly endurance building block.";
+                    } else if (currentWeek === 5) {
+                        dynamicDescription = "Run for 55-65 minutes in Zone 2. Your weekly endurance building block.";
+                    }
                 }
 
                 el.innerHTML = `
