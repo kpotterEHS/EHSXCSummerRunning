@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EHS XC Summer Running</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        maroon: {
+                            50: '#fdf2f4',
+                            100: '#fbe8eb',
+                            200: '#f7d5da',
+                            300: '#f0b4be',
+                            400: '#e58899',
+                            500: '#d45a73',
+                            600: '#bd3a55',
+                            700: '#9e2940',
+                            800: '#832437',
+                            900: '#6e2131',
+                            950: '#3d0e17',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #1c1917; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 320px; }
+        }
+
+        .tab-btn { transition: all 0.2s ease-in-out; }
+        .tab-btn.active { background-color: #832437; color: white; border-color: #832437; }
+        .tab-btn.inactive { background-color: transparent; color: #44403c; border-color: #d6d3d1; }
+        .tab-btn.inactive:hover { background-color: #f5f5f4; }
+
+        .week-btn { transition: all 0.2s ease-in-out; }
+        .week-btn.active { background-color: #9e2940; color: white; border-color: #9e2940; transform: scale(1.05); }
+        .week-btn.inactive { background-color: white; color: #44403c; border-color: #e5e5e0; }
+        .week-btn.inactive:hover { background-color: #f5f5f4; border-color: #d6d3d1; }
+
+        .plyo-card { transition: all 0.2s ease; cursor: pointer; }
+        .plyo-card:hover { transform: translateY(-4px); }
+        .plyo-details { display: none; }
+        .plyo-card.open .plyo-details { display: block; }
+        
+        .hidden-section { display: none; }
+        
+        /* Custom scrollbar for horizontal week selector on mobile devices */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <header class="bg-stone-900 text-stone-50 py-8 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight">EHS XC Summer Running 🏃</h1>
+            <p class="mt-2 text-stone-300 text-lg">Build your Zone 2-3 aerobic engine, increase speed, and prepare for the fall 2026 season.</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-12">
+
+        <section aria-labelledby="selection-heading">
+            <h2 id="selection-heading" class="text-xl font-semibold text-stone-800 mb-4">Select Your Training Group</h2>
+            <p class="text-stone-600 mb-6">Choose your level below to view your personalized weekly schedule, mileage progression, and target paces. The dashboard dynamically updates all calendar values and progressions for you.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-sm text-stone-600">
+                <div class="bg-stone-100/60 p-4 rounded-xl border border-stone-200/80">
+                    <strong class="text-maroon-900 block mb-1.5 font-semibold">🌱 Group 1: Beginner</strong>
+                    Designed for new runners, athletes who may find it challenging to sustain a highly consistent running plan all summer, or those participating in cross country primarily for the positive social and community aspects rather than performance goals.
+                </div>
+                <div class="bg-stone-100/60 p-4 rounded-xl border border-stone-200/80">
+                    <strong class="text-maroon-900 block mb-1.5 font-semibold">🌿 Group 2: Intermediate (Recommended)</strong>
+                    Ideally our largest group. This track safely eases you into a healthy, progressive mileage base so you arrive fully prepared for a successful, competitive fall season while keeping your summer commitment levels highly manageable.
+                </div>
+                <div class="bg-stone-100/60 p-4 rounded-xl border border-stone-200/80">
+                    <strong class="text-maroon-900 block mb-1.5 font-semibold">🌲 Group 3: Advanced</strong>
+                    Requires a substantial investment of time, consistency, and physical effort. This group is strictly for experienced runners with cross country or track backgrounds who can safely manage a peak of 35-45 miles per week. Goals should be competitive in nature.
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <button onclick="setGroup('beginner')" id="btn-beginner" class="tab-btn active px-6 py-3 rounded-lg border font-medium text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-maroon-600">
+                    🌱 Group 1: Beginner (3 Days)
+                </button>
+                <button onclick="setGroup('intermediate')" id="btn-intermediate" class="tab-btn inactive px-6 py-3 rounded-lg border font-medium text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-maroon-600">
+                    🌿 Group 2: Intermediate (Progressive 3-5 Days)
+                </button>
+                <button onclick="setGroup('advanced')" id="btn-advanced" class="tab-btn inactive px-6 py-3 rounded-lg border font-medium text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-maroon-600">
+                    🌲 Group 3: Advanced (5 Days)
+                </button>
+            </div>
+        </section>
+
+        <section class="bg-stone-100 p-4 rounded-xl border border-stone-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-stone-500">Choose Training Week</h3>
+                <span id="current-month-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-maroon-100 text-maroon-800 border border-maroon-200">June Phase</span>
+            </div>
+            
+            <!-- Horizontal Scrollable Week Buttons -->
+            <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar snap-x">
+                <button onclick="setWeek(1)" id="wk-btn-1" class="week-btn active flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 1<br><span class="text-[10px] font-normal block mt-0.5">Jun 1 - Jun 7</span></button>
+                <button onclick="setWeek(2)" id="wk-btn-2" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 2<br><span class="text-[10px] font-normal block mt-0.5">Jun 8 - Jun 14</span></button>
+                <button onclick="setWeek(3)" id="wk-btn-3" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 3<br><span class="text-[10px] font-normal block mt-0.5">Jun 15 - Jun 21</span></button>
+                <button onclick="setWeek(4)" id="wk-btn-4" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 4<br><span class="text-[10px] font-normal block mt-0.5">Jun 22 - Jun 28</span></button>
+                <button onclick="setWeek(5)" id="wk-btn-5" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 5<br><span class="text-[10px] font-normal block mt-0.5">Jun 29 - Jul 5</span></button>
+                <button onclick="setWeek(6)" id="wk-btn-6" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 6<br><span class="text-[10px] font-normal block mt-0.5">Jul 6 - Jul 12</span></button>
+                <button onclick="setWeek(7)" id="wk-btn-7" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 7<br><span class="text-[10px] font-normal block mt-0.5">Jul 13 - Jul 19</span></button>
+                <button onclick="setWeek(8)" id="wk-btn-8" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 8<br><span class="text-[10px] font-normal block mt-0.5">Jul 20 - Jul 26</span></button>
+                <button onclick="setWeek(9)" id="wk-btn-9" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 9<br><span class="text-[10px] font-normal block mt-0.5">Jul 27 - Aug 2</span></button>
+                <button onclick="setWeek(10)" id="wk-btn-10" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 10<br><span class="text-[10px] font-normal block mt-0.5">Aug 3 - Aug 9</span></button>
+                <button onclick="setWeek(11)" id="wk-btn-11" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 11<br><span class="text-[10px] font-normal block mt-0.5">Aug 10 - Aug 16</span></button>
+                <button onclick="setWeek(12)" id="wk-btn-12" class="week-btn inactive flex-shrink-0 px-4 py-2.5 rounded-lg border text-xs sm:text-sm font-semibold snap-start">Wk 12<br><span class="text-[10px] font-normal block mt-0.5">Aug 17 - Aug 23</span></button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <section class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-stone-100 pb-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-stone-800" id="schedule-title">Weekly Schedule</h2>
+                            <p class="text-stone-500 text-sm mt-1" id="schedule-desc">Consistent easy miles are the key to a strong base.</p>
+                        </div>
+                        <!-- Current Target Mileage display -->
+                        <div class="mt-4 sm:mt-0 bg-maroon-50 border border-maroon-200 rounded-lg px-4 py-2.5 text-center flex flex-row sm:flex-col items-center justify-between w-full sm:w-auto gap-4">
+                            <span class="text-xs font-semibold text-maroon-800 uppercase tracking-wider">Weekly Goal</span>
+                            <span id="mileage-target-display" class="text-2xl font-extrabold text-maroon-900">10 Miles</span>
+                        </div>
+                    </div>
+
+                    <div id="schedule-container" class="space-y-4 mt-6">
+                        <!-- Dynamic schedule items populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Guidance dynamic block based on the chosen week -->
+                <div class="mt-6 p-4 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-500 flex items-center gap-3">
+                    <span class="text-lg">💡</span>
+                    <span id="weekly-coaching-tip">Keep easy days truly easy. Focus on continuous, relaxed breathing.</span>
+                </div>
+            </section>
+
+            <!-- Chart section showing mileage build-up -->
+            <section class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-stone-800 mb-1">Summer Volume Chart</h2>
+                    <p class="text-stone-500 text-xs mb-4">Estimated weekly mileage over the 12-week block. Current selected week is highlighted in amber.</p>
+                </div>
+                <div class="flex-grow flex items-center justify-center">
+                    <div class="chart-container">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="bg-gradient-to-r from-maroon-800 to-maroon-950 text-stone-100 rounded-xl shadow-md border border-maroon-700 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:shadow-lg">
+            <div class="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
+                <span class="text-4xl select-none" aria-hidden="true">📋</span>
+                <div>
+                    <h3 class="text-lg md:text-xl font-bold tracking-wide text-white">Log Your Weekly Mileage</h3>
+                    <p class="text-maroon-200 text-sm mt-1 max-w-xl">At the conclusion of every week of training, please click here to enter the miles you ran so that Coach Potter has record of your summer mileage.</p>
+                </div>
+            </div>
+            <a href="https://forms.gle/9LJbaC9q6a4eoPoS6" target="_blank" rel="noopener noreferrer" class="w-full md:w-auto text-center font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 transition-colors px-6 py-3.5 rounded-lg text-sm tracking-wide shadow-sm flex items-center justify-center gap-2 shrink-0">
+                Log Weekly Miles
+                <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+            </a>
+        </section>
+
+        <section id="threshold-section" class="hidden-section bg-maroon-50 rounded-xl shadow-sm border border-maroon-100 p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⏱️</span>
+                    <h2 class="text-2xl font-bold text-maroon-900">Weekly Threshold Progression</h2>
+                </div>
+                <div class="bg-maroon-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold">
+                    Current Goal: <span id="current-threshold-highlight">2 x 5 Min</span>
+                </div>
+            </div>
+            <p class="text-maroon-800 mb-6">Threshold runs (Zone 3 / "Comfortably Hard") increase your body's lactate clearing efficiency. Keep these at a conversational yet steady output. Group 2 (Intermediate) and Group 3 (Advanced) will integrate this progression dynamically into Wednesdays.</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="threshold-grid">
+                <!-- Dynamically loaded -->
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-100 pb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-800">Target Training Zones ⏱️</h2>
+                    <p class="text-stone-500 text-sm mt-1">Select your current 5K time trial or race fitness level to see your precise training paces.</p>
+                </div>
+                <!-- Interactive Dropdown -->
+                <div class="flex items-center gap-3 bg-stone-100 p-2 rounded-xl border border-stone-200">
+                    <label for="pace-selector" class="text-xs font-bold text-stone-700 uppercase tracking-wide">My 5K Baseline:</label>
+                    <select id="pace-selector" onchange="calculatePaces()" class="bg-white border border-stone-300 text-stone-850 font-bold py-1.5 px-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-maroon-600">
+                        <option value="17">17:00 Minutes</option>
+                        <option value="18">18:00 Minutes</option>
+                        <option value="19">19:00 Minutes</option>
+                        <option value="20" selected>20:00 Minutes</option>
+                        <option value="21">21:00 Minutes</option>
+                        <option value="22">22:00 Minutes</option>
+                        <option value="23">23:00 Minutes</option>
+                        <option value="24">24:00 Minutes</option>
+                        <option value="25">25:00 Minutes</option>
+                        <option value="26">26:00 Minutes</option>
+                        <option value="27">27:00 Minutes</option>
+                        <option value="28">28:00 Minutes</option>
+                        <option value="29">29:00 Minutes</option>
+                        <option value="30">30:00 Minutes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Zone Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Zone 2 Card -->
+                <div class="bg-sky-50 border border-sky-100 p-6 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-sky-800 bg-sky-200/50 px-3 py-1 rounded-full">Zone 2: Aerobic Base Speed</span>
+                            <span class="text-xl">🌱</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-sky-950 mb-2">Builds Aerobic Capacity</h3>
+                        <p class="text-xs text-sky-850 leading-relaxed">This is the engine builder. Your breathing must be comfortable and completely conversational throughout the entire run. Keep your heart rate relaxed to stimulate capillary density, mitochondria growth, and cardiac stroke volume adaptations.</p>
+                    </div>
+                    <div class="border-t border-sky-200/60 pt-4 mt-6">
+                        <span class="text-[10px] text-sky-600 font-bold uppercase tracking-wider">Your Target Zone 2 Pace</span>
+                        <div class="text-3xl font-black text-sky-950 mt-1" id="zone2-display">8:05 - 8:55 / mile</div>
+                        <span class="text-[11px] text-sky-655 font-medium block mt-1" id="zone2-km-display">(5:01 - 5:32 / km)</span>
+                    </div>
+                </div>
+
+                <!-- Zone 3 / Threshold Card -->
+                <div class="bg-amber-50 border border-amber-100 p-6 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full">Zone 3: Lactate Threshold Speed</span>
+                            <span class="text-xl">⏱️</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-amber-950 mb-2">Improves Fatigue Resistance</h3>
+                        <p class="text-xs text-amber-850 leading-relaxed">This is your "comfortably hard" tempo effort. It teaches your muscles to clear lactic acid quickly during sustained efforts. Avoid turning this into an all-out race; you should feel steady, controlled, and able to only speak in brief, clipped 3-4 word sentences.</p>
+                    </div>
+                    <div class="border-t border-amber-200/60 pt-4 mt-6">
+                        <span class="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Your Target Threshold Pace</span>
+                        <div class="text-3xl font-black text-amber-950 mt-1" id="threshold-display">6:50 - 7:00 / mile</div>
+                        <span class="text-[11px] text-amber-655 font-medium block mt-1" id="threshold-km-display">(4:15 - 4:21 / km)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-stone-800">Speed & Plyometrics Hub ⚡</h2>
+                <p class="text-stone-600 mt-2">Running economy relies heavily on elastic storage in your tendons. Integrate these quick, high-impact routines into your designated Speed days. Click on any card below to reveal instruction details and access video demonstration searches.</p>
+            </div>
+
+            <div class="flex gap-2 mb-6 border-b border-stone-200 pb-2 overflow-x-auto">
+                <button onclick="setPlyoLevel('beginner')" id="plyo-btn-beginner" class="plyo-tab font-semibold text-maroon-700 border-b-2 border-maroon-600 pb-2 px-2 whitespace-nowrap">Beginner Options (8)</button>
+                <button onclick="setPlyoLevel('intermediate')" id="plyo-btn-intermediate" class="plyo-tab font-medium text-stone-500 hover:text-stone-700 pb-2 px-2 whitespace-nowrap">Intermediate Options (9)</button>
+                <button onclick="setPlyoLevel('advanced')" id="plyo-btn-advanced" class="plyo-tab font-medium text-stone-500 hover:text-stone-700 pb-2 px-2 whitespace-nowrap">Advanced Options (10)</button>
+            </div>
+
+            <div id="plyo-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically loaded -->
+            </div>
+        </section>
+
+        <section class="bg-gradient-to-r from-orange-600 to-orange-800 text-stone-50 rounded-xl shadow-md border border-orange-500 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:shadow-lg">
+            <div class="flex items-center gap-4 text-center md:text-left flex-col md:flex-row">
+                <span class="text-4xl select-none" aria-hidden="true">🧡</span>
+                <div>
+                    <h3 class="text-lg md:text-xl font-bold tracking-wide text-white">Want to see how your teammates are doing?</h3>
+                    <p class="text-orange-100 text-sm mt-1 max-w-xl">Check out our Strava Team Page to connect, share runs, and cheer each other on during the summer grind!</p>
+                </div>
+            </div>
+            <a href="https://www.strava.com/clubs/2144764" target="_blank" rel="noopener noreferrer" class="w-full md:w-auto text-center font-bold bg-white hover:bg-orange-50 text-orange-700 transition-colors px-6 py-3.5 rounded-lg text-sm tracking-wide shadow-sm flex items-center justify-center gap-2 shrink-0">
+                Strava Club Page
+                <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path></svg>
+            </a>
+        </section>
+
+    </main>
+
+    <script>
+        const data = {
+            schedules: {
+                beginner: [
+                    { day: "Monday", type: "Easy Base", desc: "Run for 20-30 minutes in Zone 2. Run at a completely conversational, relaxed pace.", icon: "👟" },
+                    { day: "Wednesday", type: "Easy Base", desc: "Run for 20-30 minutes in Zone 2. Focus on light footsteps, good posture, and breathing.", icon: "👟" },
+                    { day: "Friday", type: "Speed & Plyo", desc: "10-minute jogging warm-up. Pick 3 options from the Beginner Plyometrics directory. Perform 4-5 sets of 80-meter light strides. Cooldown with a 5-minute jog.", icon: "⚡" }
+                ],
+                intermediate: {
+                    june: [
+                        { day: "Monday", type: "Easy Base", desc: "Run 25-35 minutes in Zone 2. Rest or stretch lightly afterward.", icon: "👟" },
+                        { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
+                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Select 3 options from the Intermediate Plyometrics directory. Walk/jog back slowly between efforts.", icon: "⚡" }
+                    ],
+                    july: [
+                        { day: "Monday", type: "Easy Base", desc: "Run 30-40 minutes in Zone 2. Keep the effort conversational.", icon: "👟" },
+                        { day: "Tuesday", type: "Recovery Run", desc: "Run 20-25 minutes very easy. This is active recovery to flush your legs.", icon: "🧘" },
+                        { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
+                        { day: "Friday", type: "Speed & Plyo", desc: "10-minute warm-up jog. Perform intermediate plyometrics. Follow with 5x100m strides.", icon: "⚡" }
+                    ],
+                    august: [
+                        { day: "Monday", type: "Easy Base", desc: "Run 35-45 minutes in Zone 2. Focus on smooth leg cycles.", icon: "👟" },
+                        { day: "Tuesday", type: "Recovery Run", desc: "Run 25-30 minutes very easy. Keep breathing completely relaxed.", icon: "🧘" },
+                        { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
+                        { day: "Thursday", type: "Steady Run", desc: "Steady 30-35 minutes Zone 2 run on hilly or soft trails.", icon: "🏃" },
+                        { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up jog. Select 3 intermediate plyos. Run 6x100m strides with walk-back recovery.", icon: "⚡" }
+                    ]
+                },
+                advanced: [
+                    { day: "Monday", type: "Long Base", desc: "60-75 minutes continuous Zone 2 run. Your weekly endurance building block.", icon: "🏃" },
+                    { day: "Tuesday", type: "Recovery Run", desc: "35-45 minutes very easy Zone 2. Excellent for leg tissue repair.", icon: "🧘" },
+                    { day: "Wednesday", type: "Threshold", desc: "Threshold Progression.", icon: "⏱️" },
+                    { day: "Thursday", type: "Easy Base", desc: "45-55 minutes continuous Zone 2 on soft grass or clay paths.", icon: "👟" },
+                    { day: "Saturday", type: "Speed & Plyo", desc: "15-minute warm-up. Pick 3 Advanced Plyo exercises. Perform 6-8x100m strides focusing on maximum relaxation at high speed.", icon: "⚡" }
+                ]
+            },
+            volumeData: {
+                labels: [
+                    'Jun 1 - Jun 7', 'Jun 8 - Jun 14', 'Jun 15 - Jun 21', 'Jun 22 - Jun 28', 
+                    'Jun 29 - Jul 5', 'Jul 6 - Jul 12', 'Jul 13 - Jul 19', 'Jul 20 - Jul 26', 
+                    'Jul 27 - Aug 2', 'Aug 3 - Aug 9', 'Aug 10 - Aug 16', 'Aug 17 - Aug 23'
+                ],
+                beginner: [10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 12],
+                intermediate: [10, 11, 12, 13, 15, 16, 18, 20, 22, 23, 25, 20],
+                advanced: [18, 20, 22, 25, 28, 30, 32, 35, 38, 42, 45, 35]
+            },
+            coachingTips: [
+                "Week 1: Welcome to summer training! Focus on getting your runs done in the morning before the heat sets in.",
+                "Week 2: Keep your conversational runs conversational. If you cannot speak in full sentences, slow down!",
+                "Week 3: Stay hydrated! Ensure you are drinking water throughout the day, not just before or after your runs.",
+                "Week 4: Form check! Focus on high hips, relaxed shoulders, and keeping your stride quick and light.",
+                "Week 5: July begins. Keep those recovery days very easy. They allow your body to build the aerobic structures.",
+                "Week 6: Mid-way milestone! Take care of your feet by checking your shoes for excessive wear.",
+                "Week 7: Consistent steps make champion bases. Keep up the great work in hot weather.",
+                "Week 8: Enjoy the process. Focus on rhythmic, deep belly breathing during your Zone 2 runs.",
+                "Week 9: August is here! We are hitting our peak weeks. Keep recovery and sleep as top priorities.",
+                "Week 10: Watch your posture when fatigued. Stay upright, drive your elbows back, and look ahead.",
+                "Week 11: Peak volume week! Dig deep, support your teammates, and eat enough clean fuel.",
+                "Week 12: Recovery transition week. Volume drops to give your body a chance to absorb all the hard work."
+            ],
+            thresholdProgression: [
+                { wk: "Jun 1 - Jun 14", rep: "2 x 5 Min", rest: "2 Min Rest", matchWeeks: [1, 2] },
+                { wk: "Jun 15 - Jun 28", rep: "3 x 5 Min", rest: "2 Min Rest", matchWeeks: [3, 4] },
+                { wk: "Jun 29 - Jul 12", rep: "2 x 8 Min", rest: "3 Min Rest", matchWeeks: [5, 6] },
+                { wk: "Jul 13 - Jul 26", rep: "3 x 8 Min", rest: "3 Min Rest", matchWeeks: [7, 8] },
+                { wk: "Jul 27 - Aug 9", rep: "2 x 15 Min", rest: "4 Min Rest", matchWeeks: [9, 10] },
+                { wk: "Aug 10 - Aug 23", rep: "2 x 20 Min", rest: "5 Min Rest", matchWeeks: [11, 12] }
+            ],
+            plyometrics: {
+                beginner: [
+                    { name: "Pogo Jumps", focus: "Ankle Stiffness & Elasticity", reps: "3 sets of 15s", desc: "Bounce up and down off your toes with minimal knee bend. React to the ground instantly.", search: "Pogo jumps running plyometrics" },
+                    { name: "A-Skips", focus: "High Knee Drive & Rhythmic Coordination", reps: "3 sets of 20m", desc: "Skip with a high knee drive, landing on the ball of your foot. Pull your foot down actively.", search: "A-Skips running drill" },
+                    { name: "Bodyweight Squat Jumps", focus: "Concentric Lower-Body Power", reps: "3 sets of 8 reps", desc: "Perform a shallow squat and explode upwards. Land softly on your mid-foot and sink into the next rep.", search: "Squat jumps execution" },
+                    { name: "Calf Raises (Eccentric Focused)", focus: "Achilles Tendon Adaptation", reps: "3 sets of 12 reps", desc: "Rise up on both feet, lift one foot, and lower down on the other over a slow 4-second count.", search: "Single leg eccentric calf raise" },
+                    { name: "Jumping Jacks (Rapid Foot-Strike)", focus: "Lateral Ankle Stabilization", reps: "3 sets of 20s", desc: "Perform rapid jumping jacks on soft ground. Focus on minimizing time spent on the ground.", search: "Jumping jacks foot speed" },
+                    { name: "Lateral Line Hops", focus: "Lateral Ankle Power & Elasticity", reps: "3 sets of 15s", desc: "Hop back and down over a straight line on one or both feet. Keep hips steady and posture erect.", search: "Lateral line hops speed" },
+                    { name: "Explosive Step-Ups", focus: "Hip Flexor Strength & Unilateral Power", reps: "3 sets of 8 per leg", desc: "Place one foot on a low box. Explode upwards, driving the opposite knee high. Soft landing.", search: "Explosive step-ups exercise" },
+                    { name: "Butt Kicks (Rapid Frequency)", focus: "Hamstring Fast-Twitch & Heel Recovery", reps: "3 sets of 15s", desc: "Stand in place or move slowly forward. Rapidly snap your heels up to touch your glutes with a high cadence.", search: "Butt kicks drill form" }
+                ],
+                intermediate: [
+                    { name: "Alternating Lunge Jumps", focus: "Single-Leg Absorb & Explode Power", reps: "3 sets of 10 reps", desc: "Lunge forward, explode into the air, switch legs, and land softly in a reverse lunge.", search: "Jumping lunges exercise" },
+                    { name: "Low Box Jumps (12-18 inch)", focus: "Explosive Leg Power with Safe Landings", reps: "3 sets of 6 reps", desc: "Squat slightly and jump onto a low box. Land in a soft, squat-ready position. Step down safely.", search: "Low box jump demo" },
+                    { name: "B-Skips", focus: "Hamstring Clawing Action & Active Footwork", reps: "3 sets of 20m", desc: "Perform an A-skip but kick your leg outward before snapping it back under your hip actively.", search: "B-Skips running drill" },
+                    { name: "Tuck Jumps", focus: "Vertical Power & Reactive Knee Drive", reps: "3 sets of 6 reps", desc: "Jump straight up, tucking your knees toward your chest. Land softly on your toes to absorb impact.", search: "Tuck jumps plyo drill" },
+                    { name: "Broad Jumps (Soft Ground)", focus: "Horizontal Power Output & Extension", reps: "3 sets of 5 jumps", desc: "Jump as far forward as possible starting from a crouch. Focus on soft, balanced, silent landings.", search: "Broad jumps for distance" },
+                    { name: "Single-Leg Lateral Hops", focus: "Single-Leg Foot Control & Knee Stability", reps: "3 sets of 10 per leg", desc: "Hop side-to-side on a single leg. Maintain level hips and focus on keeping your knee straight.", search: "Single leg lateral jumps" },
+                    { name: "Ice Skater Lateral Bounds", focus: "Glute Medius Power & Hip Stability", reps: "3 sets of 12 bounds", desc: "Bound sideways, landing on one foot with a slight knee bend. Push off that foot to bound back.", search: "Skater bounds lateral plyo" },
+                    { name: "Explosive Mountain Climbers", focus: "Core Stability & Fast Leg Turnover", reps: "3 sets of 20s", desc: "Keep your back flat in a plank. Drive your knees forward in a rapid, alternating rhythm.", search: "Explosive mountain climbers" },
+                    { name: "Ankle Dribbles", focus: "Elastic Tendon Response & High Cadence", reps: "3 sets of 20m", desc: "Walk forward with rapid ankle steps. Flick your toes up quickly, minimizing heel contact.", search: "Ankle dribble running drill" }
+                ],
+                advanced: [
+                    { name: "Continuous Bounding", focus: "Horizontal Stride Length & Muscle Elasticity", reps: "4 sets of 30m", desc: "Drive forward in giant, exaggerated strides, launching yourself high off each foot-strike.", search: "Bounding drill running" },
+                    { name: "Single-Leg Box Jumps", focus: "Single-Leg Power & Hip-Knee Alignment", reps: "3 sets of 5 per leg", desc: "Jump from one leg onto a low box, landing on the same foot. Keep your hips aligned.", search: "Single leg box jump tutorial" },
+                    { name: "Depth Drops", focus: "Eccentric Impact Absorption & Muscle Control", reps: "3 sets of 5 reps", desc: "Step off a 12-18 inch box and land silently on both feet. Freeze immediately into an athletic stance.", search: "Depth drops plyometrics" },
+                    { name: "Depth Jumps", focus: "Extreme Reactive Power & Minimal Contact Time", reps: "3 sets of 4 reps", desc: "Step off a 12-inch box. Upon landing, immediately explode vertically into a high jump.", search: "Depth jump reactivity drill" },
+                    { name: "Single-Leg Vertical Hops", focus: "Maximum Single-Leg Reactive Stiffness", reps: "3 sets of 8 per leg", desc: "Stand on one leg. Rapidly hop up and down off your toes, keeping your leg nearly straight.", search: "Single leg ankle vertical hops" },
+                    { name: "Continuous Hurdle Hops", focus: "Elastic Rebound & Rapid Frontal Control", reps: "3 sets of 5 barriers", desc: "Place 5 low hurdles or obstacles spaced apart. Bounce over them sequentially with minimal ground contact.", search: "Hurdle jumps plyo" },
+                    { name: "Split Squat Jumps (In Air Cycles)", focus: "High Power Output & Complex Coordination", reps: "3 sets of 8 cycles", desc: "Jump from a lunge. Cycle your legs back-and-forth twice in mid-air before landing back in a lunge.", search: "Split squat jump cycle plyo" },
+                    { name: "Single-Leg Lateral Box jumps", focus: "Lateral Hip Power & Rotational Knee Stability", reps: "3 sets of 5 per leg", desc: "Stand beside a low box. Jump sideways onto it using one leg, landing with stable knee control.", search: "Lateral single leg box jump" },
+                    { name: "High-Frequency Knee Drives", focus: "Rapid Hip Turnover & Psoas Muscle Speed", reps: "3 sets of 15s", desc: "Sprint in place with high knees as fast as humanly possible, keeping contact times tiny.", search: "High knee sprint drill" },
+                    { name: "Backward Bounding", focus: "Posterior Chain Recruitment & Proprioception", reps: "3 sets of 20m", desc: "Bound backward with long, powerful strides, extending your hips back and landing soft.", search: "Backward bounding running" }
+                ]
+            }
+        };
+
+        const pacingTargets = {
+            "17": { z2_mi: "7:10 - 7:55 / mile", z2_km: "(4:27 - 4:55 / km)", th_mi: "5:55 - 6:05 / mile", th_km: "(3:41 - 3:47 / km)" },
+            "18": { z2_mi: "7:30 - 8:15 / mile", z2_km: "(4:40 - 5:08 / km)", th_mi: "6:15 - 6:25 / mile", th_km: "(3:53 - 3:59 / km)" },
+            "19": { z2_mi: "7:45 - 8:35 / mile", z2_km: "(4:49 - 5:20 / km)", th_mi: "6:30 - 6:42 / mile", th_km: "(4:02 - 4:10 / km)" },
+            "20": { z2_mi: "8:05 - 8:55 / mile", z2_km: "(5:01 - 5:32 / km)", th_mi: "6:50 - 7:00 / mile", th_km: "(4:15 - 4:21 / km)" },
+            "21": { z2_mi: "8:20 - 9:15 / mile", z2_km: "(5:11 - 5:45 / km)", th_mi: "7:05 - 7:18 / mile", th_km: "(4:24 - 4:32 / km)" },
+            "22": { z2_mi: "8:40 - 9:35 / mile", z2_km: "(5:23 - 5:57 / km)", th_mi: "7:25 - 7:35 / mile", th_km: "(4:36 - 4:43 / km)" },
+            "23": { z2_mi: "8:55 - 9:50 / mile", z2_km: "(5:32 - 6:07 / km)", th_mi: "7:42 - 7:54 / mile", th_km: "(4:47 - 4:54 / km)" },
+            "24": { z2_mi: "9:15 - 10:10 / mile", z2_km: "(5:45 - 6:19 / km)", th_mi: "8:00 - 8:12 / mile", th_km: "(4:58 - 5:06 / km)" },
+            "25": { z2_mi: "9:30 - 10:25 / mile", z2_km: "(5:54 - 6:28 / km)", th_mi: "8:18 - 8:30 / mile", th_km: "(5:09 - 5:17 / km)" },
+            "26": { z2_mi: "9:50 - 10:45 / mile", z2_km: "(6:07 - 6:41 / km)", th_mi: "8:35 - 8:48 / mile", th_km: "(5:20 - 5:28 / km)" },
+            "27": { z2_mi: "10:05 - 11:00 / mile", z2_km: "(6:16 - 6:50 / km)", th_mi: "8:50 - 9:05 / mile", th_km: "(5:29 - 5:39 / km)" },
+            "28": { z2_mi: "10:20 - 11:20 / mile", z2_km: "(6:25 - 7:02 / km)", th_mi: "9:10 - 9:25 / mile", th_km: "(5:42 - 5:51 / km)" },
+            "29": { z2_mi: "10:35 - 11:35 / mile", z2_km: "(6:34 - 7:12 / km)", th_mi: "9:28 - 9:42 / mile", th_km: "(5:53 - 6:02 / km)" },
+            "30": { z2_mi: "10:50 - 11:55 / mile", z2_km: "(6:44 - 7:24 / km)", th_mi: "9:45 - 10:00 / mile", th_km: "(6:03 - 6:13 / km)" }
+        };
+
+        let currentGroup = 'beginner';
+        let currentWeek = 1;
+        let volumeChartInstance = null;
+
+        function init() {
+            renderThreshold();
+            setGroup('beginner');
+            setPlyoLevel('beginner');
+            calculatePaces();
+        }
+
+        function calculatePaces() {
+            const selectedTime = document.getElementById('pace-selector').value;
+            const targets = pacingTargets[selectedTime];
+            
+            if (targets) {
+                // Update interactive displays
+                document.getElementById('zone2-display').innerText = targets.z2_mi;
+                document.getElementById('zone2-km-display').innerText = targets.z2_km;
+                document.getElementById('threshold-display').innerText = targets.th_mi;
+                document.getElementById('threshold-km-display').innerText = targets.th_km;
+            }
+        }
+
+        function setWeek(wkNum) {
+            currentWeek = wkNum;
+            
+            // Highlight current week button
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.getElementById(`wk-btn-${i}`);
+                if (i === wkNum) {
+                    btn.classList.replace('inactive', 'active');
+                } else {
+                    btn.classList.replace('active', 'inactive');
+                }
+            }
+
+            // Update month badge based on week number
+            const badge = document.getElementById('current-month-badge');
+            if (wkNum <= 4) {
+                badge.innerText = "June Phase";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-maroon-100 text-maroon-800 border border-maroon-200";
+            } else if (wkNum <= 8) {
+                badge.innerText = "July Phase";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 border border-sky-200";
+            } else {
+                badge.innerText = "August Phase";
+                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200";
+            }
+
+            // Update mileage target text
+            const targetMileage = data.volumeData[currentGroup][wkNum - 1];
+            document.getElementById('mileage-target-display').innerText = `${targetMileage} Miles`;
+
+            // Update coaching tips text
+            document.getElementById('weekly-coaching-tip').innerText = data.coachingTips[wkNum - 1];
+
+            // Re-render schedule for this week and highlight active week elements
+            renderSchedule();
+            highlightThresholdWeek();
+            updateChartHighlight();
+        }
+
+        function setGroup(group) {
+            currentGroup = group;
+            
+            // Toggle primary selector buttons
+            ['beginner', 'intermediate', 'advanced'].forEach(g => {
+                const btn = document.getElementById(`btn-${g}`);
+                if(g === group) {
+                    btn.classList.replace('inactive', 'active');
+                } else {
+                    btn.classList.replace('active', 'inactive');
+                }
+            });
+
+            const thresholdSection = document.getElementById('threshold-section');
+            if (group === 'beginner') {
+                thresholdSection.style.display = 'none';
+            } else {
+                thresholdSection.style.display = 'block';
+            }
+
+            // Reset view to Week 1 initially when changing groups
+            setWeek(currentWeek);
+            renderChart(group);
+        }
+
+        function renderSchedule() {
+            const container = document.getElementById('schedule-container');
+            container.innerHTML = '';
+
+            let weekSchedule = [];
+            
+            if (currentGroup === 'beginner') {
+                document.getElementById('schedule-title').innerText = "Group 1: Beginner Weekly Workouts";
+                document.getElementById('schedule-desc').innerText = "Steady introductory running cycle. Build robust, simple cardio bases.";
+                weekSchedule = data.schedules.beginner;
+            } else if (currentGroup === 'intermediate') {
+                document.getElementById('schedule-title').innerText = "Group 2: Intermediate Weekly Workouts";
+                
+                // Determine monthly block dynamically based on active week
+                if (currentWeek <= 4) {
+                    document.getElementById('schedule-desc').innerText = "June Cycle: Active 3 Days/week Base. Safe, calculated starter load.";
+                    weekSchedule = data.schedules.intermediate.june;
+                } else if (currentWeek <= 8) {
+                    document.getElementById('schedule-desc').innerText = "July Cycle: Active 4 Days/week Base. Gradually expanding time-on-feet.";
+                    weekSchedule = data.schedules.intermediate.july;
+                } else {
+                    document.getElementById('schedule-desc').innerText = "August Cycle: Active 5 Days/week Peak Base. Realizing aerobic fitness goals.";
+                    weekSchedule = data.schedules.intermediate.august;
+                }
+            } else {
+                document.getElementById('schedule-title').innerText = "Group 3: Advanced Weekly Workouts";
+                document.getElementById('schedule-desc').innerText = "Consistent 5 Days/week Base. Built specifically for top high-school performance.";
+                weekSchedule = data.schedules.advanced;
+            }
+
+            // Get current active threshold specs for replacement
+            const matchingThresholdObj = data.thresholdProgression.find(tp => tp.matchWeeks.includes(currentWeek));
+
+            weekSchedule.forEach(item => {
+                const el = document.createElement('div');
+                el.className = "flex items-start p-4 rounded-lg bg-stone-50 border border-stone-200 shadow-sm transition-all";
+                
+                let dynamicDescription = item.desc;
+                // If Wednesday Threshold, dynamically inject specific reps & rests
+                if (item.type === "Threshold") {
+                    dynamicDescription = `Perform <strong>${matchingThresholdObj.rep}</strong> with <strong>${matchingThresholdObj.rest}</strong>. Maintain steady, conversational-yet-steady pacing throughout all reps. Take 5 min warmup and 5 min cooldown jogs.`;
+                }
+
+                el.innerHTML = `
+                    <div class="text-3xl mr-4 mt-1">${item.icon}</div>
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-base">${item.day} <span class="text-maroon-700 font-semibold text-xs ml-2 px-2.5 py-1 bg-maroon-100 rounded-full uppercase">${item.type}</span></h4>
+                        <p class="text-stone-600 text-sm mt-1 leading-relaxed">${dynamicDescription}</p>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function renderChart(group) {
+            const ctx = document.getElementById('volumeChart').getContext('2d');
+            const mileageArray = data.volumeData[group];
+            
+            // Set dynamic background colors (highlight active week bar)
+            const backgroundColors = mileageArray.map((_, i) => i === (currentWeek - 1) ? '#d97706' : '#901b34');
+            const maxVal = group === 'advanced' ? 50 : (group === 'intermediate' ? 30 : 20);
+
+            if (volumeChartInstance) {
+                volumeChartInstance.destroy();
+            }
+
+            volumeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+                    datasets: [{
+                        label: 'Target Volume (Miles)',
+                        data: mileageArray,
+                        backgroundColor: backgroundColors,
+                        hoverBackgroundColor: '#7a192e',
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dateRange = data.volumeData.labels[context.dataIndex];
+                                    return `${context.parsed.y} Miles (${dateRange})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: maxVal,
+                            grid: { color: '#f5f5f4' },
+                            title: { display: true, text: 'Miles', color: '#78716c', font: { weight: 'bold', size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartHighlight() {
+            if (!volumeChartInstance) return;
+            const mileageArray = data.volumeData[currentGroup];
+            const backgroundColors = mileageArray.map((_, i) => i === (currentWeek - 1) ? '#d97706' : '#901b34');
+            
+            volumeChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+            volumeChartInstance.update();
+        }
+
+        function renderThreshold() {
+            const container = document.getElementById('threshold-grid');
+            container.innerHTML = '';
+            
+            data.thresholdProgression.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.id = `threshold-card-${index}`;
+                el.className = "bg-white p-4 rounded-xl shadow-sm border border-maroon-100 text-center flex flex-col justify-between transition-all";
+                el.innerHTML = `
+                    <div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">${item.wk}</div>
+                    <div class="text-lg font-bold text-stone-800">${item.rep}</div>
+                    <div class="text-xs text-maroon-600 mt-2 font-medium bg-maroon-100/50 py-1 rounded">${item.rest}</div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function highlightThresholdWeek() {
+            // Un-highlight all threshold blocks
+            data.thresholdProgression.forEach((_, idx) => {
+                const card = document.getElementById(`threshold-card-${idx}`);
+                if (card) {
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-maroon-100 text-center flex flex-col justify-between transition-all";
+                }
+            });
+
+            // Find matching index based on current selected week
+            const matchedIdx = data.thresholdProgression.findIndex(tp => tp.matchWeeks.includes(currentWeek));
+            if (matchedIdx !== -1) {
+                const card = document.getElementById(`threshold-card-${matchedIdx}`);
+                if (card) {
+                    card.className = "bg-amber-50 p-4 rounded-xl shadow-md border-2 border-amber-500 text-center flex flex-col justify-between scale-105 transition-all";
+                }
+                document.getElementById('current-threshold-highlight').innerText = data.thresholdProgression[matchedIdx].rep;
+            }
+        }
+
+        function setPlyoLevel(level) {
+            ['beginner', 'intermediate', 'advanced'].forEach(l => {
+                const btn = document.getElementById(`plyo-btn-${l}`);
+                if(l === level) {
+                    btn.className = "plyo-tab font-semibold text-maroon-700 border-b-2 border-maroon-600 pb-2 px-2 whitespace-nowrap";
+                } else {
+                    btn.className = "plyo-tab font-medium text-stone-500 hover:text-stone-700 pb-2 px-2 whitespace-nowrap border-b-2 border-transparent";
+                }
+            });
+
+            const container = document.getElementById('plyo-container');
+            container.innerHTML = '';
+            
+            data.plyometrics[level].forEach((plyo) => {
+                const card = document.createElement('div');
+                card.className = "plyo-card bg-stone-50 rounded-xl p-5 border border-stone-200 flex flex-col justify-between hover:shadow-md";
+                card.onclick = function() { this.classList.toggle('open'); };
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <h4 class="font-bold text-stone-800 text-base">${plyo.name}</h4>
+                                <p class="text-xs font-semibold text-maroon-600 uppercase mt-1 tracking-wide">${plyo.focus}</p>
+                            </div>
+                            <span class="text-stone-500 text-[11px] text-right">Target: <br><span class="font-bold text-stone-800">${plyo.reps}</span></span>
+                        </div>
+                        <div class="plyo-details mt-4 pt-4 border-t border-stone-200">
+                            <p class="text-stone-600 text-sm mb-4 leading-relaxed">${plyo.desc}</p>
+                            <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(plyo.search)}" target="_blank" class="inline-flex items-center text-xs font-semibold text-maroon-800 hover:text-white hover:bg-maroon-700 bg-maroon-100 transition-colors px-3 py-2 rounded-md" onclick="event.stopPropagation();">
+                                🔍 View Demonstration
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4 text-stone-400 text-[10px] uppercase tracking-wider font-semibold border-t border-stone-100 pt-3">
+                        Click to view details
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
