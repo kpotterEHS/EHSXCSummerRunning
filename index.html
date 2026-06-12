@@ -645,7 +645,13 @@
                             labels: {
                                 font: { size: 10 },
                                 boxWidth: 12,
-                                color: '#57534e'
+                                color: '#57534e',
+                                generateLabels: function() {
+                                    return [
+                                        { text: 'Required Miles', fillStyle: '#901b34', strokeStyle: '#901b34', lineWidth: 0, hidden: false, datasetIndex: 0 },
+                                        { text: 'Optional Miles (above base)', fillStyle: '#c4b5d4', strokeStyle: '#c4b5d4', lineWidth: 0, hidden: false, datasetIndex: 1 }
+                                    ];
+                                }
                             }
                         },
                         tooltip: {
