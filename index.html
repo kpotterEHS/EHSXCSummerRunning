@@ -201,7 +201,7 @@
                     Current Goal: <span id="current-threshold-highlight">2 x 5 Min</span>
                 </div>
             </div>
-            <p class="text-maroon-800 mb-6">Threshold runs (Zone 3 / "Comfortably Hard") increase your body's lactate clearing efficiency. Keep these at a conversational yet steady output. Group 2 (Intermediate) and Group 3 (Advanced) will integrate this progression dynamically into Wednesdays.</p>
+            <p class="text-maroon-800 mb-6">Threshold runs (Zone 4 / "Comfortably Hard") increase your body's lactate clearing efficiency. Maintain steady pacing throughout the workout. This pace should feel challenging, especially near the end of each repetition. Group 2 (Intermediate) and Group 3 (Advanced) will integrate this progression dynamically into Wednesdays.</p>
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="threshold-grid">
                 <!-- Dynamically loaded -->
@@ -259,11 +259,11 @@
                 <div class="bg-amber-50 border border-amber-100 p-6 rounded-xl flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full">Zone 3: Lactate Threshold Speed</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-200/50 px-3 py-1 rounded-full">Zone 4: Lactate Threshold Speed</span>
                             <span class="text-xl">⏱️</span>
                         </div>
                         <h3 class="text-lg font-bold text-amber-950 mb-2">Improves Fatigue Resistance</h3>
-                        <p class="text-xs text-amber-850 leading-relaxed">This is your "comfortably hard" tempo effort. It teaches your muscles to clear lactic acid quickly during sustained efforts. Avoid turning this into an all-out race; you should feel steady, controlled, and able to only speak in brief, clipped 3-4 word sentences.</p>
+                        <p class="text-xs text-amber-850 leading-relaxed">This is your "comfortably hard" tempo effort. It teaches your muscles to clear lactic acid quickly during sustained efforts. Avoid turning this into an all-out race. Maintain steady pacing throughout the workout. This pace should feel challenging, especially near the end of each repetition.</p>
                     </div>
                     <div class="border-t border-amber-200/60 pt-4 mt-6">
                         <span class="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Your Target Threshold Pace</span>
@@ -360,7 +360,8 @@
                 ],
                 beginner: [10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 12],
                 intermediate: [10, 11, 12, 13, 15, 16, 18, 20, 22, 23, 25, 20],
-                advanced: [15, 17, 20, 23, 26, 30, 32, 35, 38, 42, 45, 35]
+                advanced: [15, 17, 20, 23, 26, 30, 32, 32, 35, 35, 35, 35],
+                advancedOptional: [0, 0, 0, 0, 0, 0, 0, 3, 3, 7, 10, 0]
             },
             coachingTips: [
                 "Week 1: Welcome to summer training! Focus on getting your runs done in the morning before the heat sets in.",
@@ -566,7 +567,7 @@
                 let dynamicDescription = item.desc;
                 // If Wednesday Threshold, dynamically inject specific reps & rests
                 if (item.type === "Threshold") {
-                    dynamicDescription = `Perform <strong>${matchingThresholdObj.rep}</strong> with <strong>${matchingThresholdObj.rest}</strong>. Maintain steady, conversational-yet-steady pacing throughout all reps. Take 5 min warmup and 5 min cooldown jogs.`;
+                    dynamicDescription = `Perform <strong>${matchingThresholdObj.rep}</strong> with <strong>${matchingThresholdObj.rest}</strong>. Maintain steady pacing throughout the workout. This pace should feel challenging, especially near the end of each repetition. Take 5 min warmup and 5 min cooldown jogs.`;
                 }
 
                 // If Monday Long Base and Advanced Group, dynamically adjust duration for first 5 weeks
@@ -596,38 +597,70 @@
         function renderChart(group) {
             const ctx = document.getElementById('volumeChart').getContext('2d');
             const mileageArray = data.volumeData[group];
+            const optionalArray = group === 'advanced' ? data.volumeData.advancedOptional : mileageArray.map(() => 0);
             
             // Set dynamic background colors (highlight active week bar)
             const backgroundColors = mileageArray.map((_, i) => i === (currentWeek - 1) ? '#d97706' : '#901b34');
+            const optionalColors = optionalArray.map((_, i) => i === (currentWeek - 1) ? '#fbbf24' : '#c4b5d4');
             const maxVal = group === 'advanced' ? 50 : (group === 'intermediate' ? 30 : 20);
 
             if (volumeChartInstance) {
                 volumeChartInstance.destroy();
             }
 
+            const datasets = [{
+                label: 'Required Miles',
+                data: mileageArray,
+                backgroundColor: backgroundColors,
+                hoverBackgroundColor: '#7a192e',
+                borderRadius: group === 'advanced' ? 0 : 4,
+                barPercentage: 0.6,
+                stack: 'volume'
+            }];
+
+            if (group === 'advanced') {
+                datasets.push({
+                    label: 'Optional Miles (above base)',
+                    data: optionalArray,
+                    backgroundColor: optionalColors,
+                    hoverBackgroundColor: '#a78bca',
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    stack: 'volume'
+                });
+            }
+
             volumeChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
-                    datasets: [{
-                        label: 'Target Volume (Miles)',
-                        data: mileageArray,
-                        backgroundColor: backgroundColors,
-                        hoverBackgroundColor: '#7a192e',
-                        borderRadius: 4,
-                        barPercentage: 0.6
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            display: group === 'advanced',
+                            labels: {
+                                font: { size: 10 },
+                                boxWidth: 12,
+                                color: '#57534e'
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
                                     const dateRange = data.volumeData.labels[context.dataIndex];
-                                    return `${context.parsed.y} Miles (${dateRange})`;
+                                    const opt = optionalArray[context.dataIndex];
+                                    if (context.datasetIndex === 1 && opt > 0) {
+                                        return `+${opt} optional miles (${dateRange})`;
+                                    }
+                                    const base = mileageArray[context.dataIndex];
+                                    const total = base + (opt || 0);
+                                    return opt > 0
+                                        ? `${base} required miles (${dateRange}) — up to ${total} total`
+                                        : `${base} Miles (${dateRange})`;
                                 }
                             }
                         }
@@ -636,10 +669,12 @@
                         y: {
                             beginAtZero: true,
                             max: maxVal,
+                            stacked: true,
                             grid: { color: '#f5f5f4' },
                             title: { display: true, text: 'Miles', color: '#78716c', font: { weight: 'bold', size: 10 } }
                         },
                         x: {
+                            stacked: true,
                             grid: { display: false },
                             ticks: { font: { size: 9 } }
                         }
@@ -651,9 +686,14 @@
         function updateChartHighlight() {
             if (!volumeChartInstance) return;
             const mileageArray = data.volumeData[currentGroup];
+            const optionalArray = currentGroup === 'advanced' ? data.volumeData.advancedOptional : mileageArray.map(() => 0);
             const backgroundColors = mileageArray.map((_, i) => i === (currentWeek - 1) ? '#d97706' : '#901b34');
+            const optionalColors = optionalArray.map((_, i) => i === (currentWeek - 1) ? '#fbbf24' : '#c4b5d4');
             
             volumeChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+            if (volumeChartInstance.data.datasets[1]) {
+                volumeChartInstance.data.datasets[1].backgroundColor = optionalColors;
+            }
             volumeChartInstance.update();
         }
 
