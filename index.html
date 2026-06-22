@@ -491,7 +491,14 @@
 
             // Update mileage target text
             const targetMileage = data.volumeData[currentGroup][wkNum - 1];
-            document.getElementById('mileage-target-display').innerText = `${targetMileage} Miles`;
+            const optionalMiles = currentGroup === 'advanced' ? data.volumeData.advancedOptional[wkNum - 1] : 0;
+            let mileageDisplay;
+            if (currentGroup === 'advanced' && optionalMiles > 0) {
+                mileageDisplay = `${targetMileage}-${targetMileage + optionalMiles} Miles`;
+            } else {
+                mileageDisplay = `${targetMileage} Miles`;
+            }
+            document.getElementById('mileage-target-display').innerText = mileageDisplay;
 
             // Update coaching tips text
             document.getElementById('weekly-coaching-tip').innerText = data.coachingTips[wkNum - 1];
