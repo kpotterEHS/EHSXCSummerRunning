@@ -167,7 +167,7 @@
             <section class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex flex-col justify-between">
                 <div>
                     <h2 class="text-xl font-bold text-stone-800 mb-1">Summer Volume Chart</h2>
-                    <p class="text-stone-500 text-xs mb-4">Estimated weekly mileage over the 12-week block. Current selected week is highlighted in amber.</p>
+                    <p class="text-stone-500 text-xs mb-4">Estimated weekly volume over the 12-week block. Current selected week is highlighted in amber.</p>
                 </div>
                 <div class="flex-grow flex items-center justify-center">
                     <div class="chart-container">
@@ -508,7 +508,7 @@
             const optionalMiles = currentGroup === 'advanced' ? data.volumeData.advancedOptional[wkNum - 1] : 0;
             let goalDisplay;
             if (currentGroup === 'beginner') {
-                goalDisplay = `${targetVal} Minutes`;
+                goalDisplay = `${targetVal} minutes active running`;
             } else if (currentGroup === 'advanced' && optionalMiles > 0) {
                 goalDisplay = `${targetVal}-${targetVal + optionalMiles} Miles`;
             } else {
